@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/prototype2/search-not-saved.html"
+      "destination": "/prototype2/homepage.html"
     }
   ]
 }
