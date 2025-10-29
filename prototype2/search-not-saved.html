@@ -599,6 +599,7 @@
             gap: 8px;
             align-items: center;
             flex-wrap: wrap;
+            min-height: 36px;
         }
 
         .filter-pill {
@@ -1741,6 +1742,7 @@
             gap: 8px;
             margin-bottom: 8px;
             flex-wrap: wrap;
+            min-height: 36px;
         }
 
         .filter-pill.removable {
@@ -1751,6 +1753,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            height: 36px;
         }
 
         .filter-pill.count {
@@ -2730,9 +2733,9 @@
             border: none;
         }
 
-        /* Hide existing pills except location, body style, and price range pills */
-        .filter-pill:not(.location-pill):not(.body-style-pill):not(.price-range-pill) {
-            display: none;
+        /* Hide existing pills except location, body style, price range, and removable pills */
+        .filter-pill:not(.location-pill):not(.body-style-pill):not(.price-range-pill):not(.removable) {
+            display: flex;
         }
 
         /* Price range pill styling */
@@ -2931,18 +2934,6 @@
                 <span class="filter-description" style="white-space: nowrap;">Cars within 250 mi</span>
             </div>
             <div class="filter-pills-row">
-                <div class="filter-pill">
-                    <span class="filter-pill-text">Ship to store</span>
-                    <button class="filter-pill-close">
-                        <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                    </button>
-                </div>
-                <div class="filter-pill">
-                    <span class="filter-pill-text">Chevrolet</span>
-                    <button class="filter-pill-close">
-                        <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                    </button>
-                </div>
                 <div class="more-filters">
                     <span class="more-filters-text">+6</span>
                 </div>
@@ -4284,21 +4275,6 @@
                     <span class="filter-description">Cars within 250 mi</span>
                 </div>
                 <div class="filter-pills-row">
-                    <div class="filter-pill removable">
-                        <span class="filter-pill-text">Ship to store</span>
-                        <button class="filter-pill-close">
-                            <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                        </button>
-                    </div>
-                    <div class="filter-pill removable">
-                        <span class="filter-pill-text">Chevrolet</span>
-                        <button class="filter-pill-close">
-                            <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                        </button>
-                    </div>
-                    <div class="filter-pill count">
-                        <span class="filter-pill-text">+6</span>
-                    </div>
                 </div>
                 <div class="reset-link" onclick="resetAllFilters()">
                     <span>Reset</span>
@@ -4643,7 +4619,6 @@
         let isSignedIn = true; // Always signed in for this prototype
         let isSearchSaved = false;
         let alertsEnabled = true; // Always enabled for this prototype
-        let isUpdatingFilterPills = false;
         let hasShownAlertToast = localStorage.getItem('hasShownAlertToast') === 'true'; // Restore from localStorage
         
         // Set localStorage to match prototype state
@@ -4726,7 +4701,7 @@
                 return expectedNames.every(name => actualNames.includes(name));
             });
             
-            addTest('Filter pill shows saved search name', () => {
+            addTest('Filter pills show individual filters for saved search', () => {
                 // Simulate selecting a saved search
                 sessionStorage.setItem('isViewingSavedSearch', 'true');
                 sessionStorage.setItem('selectedSavedSearch', 'Under $15k for Sally');
@@ -4739,8 +4714,8 @@
                 updateFilterPills();
                 
                 const filterPills = document.querySelectorAll('.filter-pill.removable');
-                const hasCorrectName = Array.from(filterPills).some(pill => 
-                    pill.textContent.includes('Under $15k for Sally')
+                const hasIndividualFilters = Array.from(filterPills).some(pill => 
+                    pill.textContent.includes('Sedan') || pill.textContent.includes('$5,000 - $15,000')
                 );
                 
                 // Clean up
@@ -4748,7 +4723,7 @@
                 sessionStorage.removeItem('selectedSavedSearch');
                 sessionStorage.removeItem('appliedFilters');
                 
-                return hasCorrectName;
+                return hasIndividualFilters;
             });
             
             addTest('New car badges appear on SRP tiles', () => {
@@ -4767,7 +4742,7 @@
                 const count2 = getVehicleCount('Under $15k for Sally');
                 const count3 = getVehicleCount('Dream car');
                 
-                return count1 === count2 && count1 !== count3 && count1 >= 4 && count1 <= 24;
+                return count1 === count2 && count1 !== count3 && count1 >= 1 && count1 <= 9;
             });
             
             addTest('Saved search selection works in My searches', () => {
@@ -4797,7 +4772,7 @@
             // ===== ISSUES DISCOVERED IN CHAT =====
             // Add new tests here when we identify logic issues
             
-            addTest('Issue: Filter pills show location filters instead of saved search name', () => {
+            addTest('Issue: Filter pills show individual filters instead of location filters', () => {
                 // Simulate selecting a saved search
                 sessionStorage.setItem('isViewingSavedSearch', 'true');
                 sessionStorage.setItem('selectedSavedSearch', 'Under $15k for Sally');
@@ -4813,8 +4788,8 @@
                 const hasLocationFilter = Array.from(filterPills).some(pill => 
                     pill.textContent.includes('75214') || pill.textContent.includes('Cars within')
                 );
-                const hasSavedSearchName = Array.from(filterPills).some(pill => 
-                    pill.textContent.includes('Under $15k for Sally')
+                const hasIndividualFilters = Array.from(filterPills).some(pill => 
+                    pill.textContent.includes('Sedan') || pill.textContent.includes('$5,000 - $15,000')
                 );
                 
                 // Clean up
@@ -4822,8 +4797,8 @@
                 sessionStorage.removeItem('selectedSavedSearch');
                 sessionStorage.removeItem('appliedFilters');
                 
-                // Should show saved search name, not location filters
-                return !hasLocationFilter && hasSavedSearchName;
+                // Should show individual filters, not location filters
+                return !hasLocationFilter && hasIndividualFilters;
             });
             
             addTest('Issue: applySavedSearch function updates filter pills correctly', () => {
@@ -4843,10 +4818,10 @@
                 // Apply the saved search
                 applySavedSearch(searchIndex);
                 
-                // Check if filter pills were updated
+                // Check if filter pills were updated with individual filters
                 const filterPills = document.querySelectorAll('.filter-pill.removable');
-                const hasSavedSearchName = Array.from(filterPills).some(pill => 
-                    pill.textContent.includes('Under $15k for Sally')
+                const hasIndividualFilters = Array.from(filterPills).some(pill => 
+                    pill.textContent.includes('Sedan') || pill.textContent.includes('$5,000 - $15,000')
                 );
                 
                 // Clean up
@@ -4854,7 +4829,7 @@
                 sessionStorage.removeItem('selectedSavedSearch');
                 sessionStorage.removeItem('appliedFilters');
                 
-                return hasSavedSearchName;
+                return hasIndividualFilters;
             });
             
             
@@ -4942,176 +4917,66 @@
         }
 
         function updateFilterPills() {
-            if (isUpdatingFilterPills) {
-                console.log('updateFilterPills already running, skipping...');
-                return;
-            }
-            
-            isUpdatingFilterPills = true;
             console.log('updateFilterPills called');
-            console.log('isViewingSavedSearch:', sessionStorage.getItem('isViewingSavedSearch'));
-            console.log('selectedSavedSearch:', sessionStorage.getItem('selectedSavedSearch'));
             
-            // Clear existing filter pills (except permanent ones)
+            // Get containers
             const mainPillsRow = document.querySelector('.filter-pills .filter-pills-row');
             const filterMenuPillsRow = document.querySelector('.filter-pills-section .filter-pills-row');
-            
-            console.log('Main pills row found:', !!mainPillsRow);
-            console.log('Filter menu pills row found:', !!filterMenuPillsRow);
+            console.log('Container check - mainPillsRow:', !!mainPillsRow, 'filterMenuPillsRow:', !!filterMenuPillsRow);
             
             if (mainPillsRow) {
-                // Keep only the permanent "Ship to store" pill
-                const permanentPill = mainPillsRow.querySelector('.filter-pill:not(.removable)');
-                mainPillsRow.innerHTML = '';
-                if (permanentPill) {
-                    mainPillsRow.appendChild(permanentPill);
-                }
+                console.log('Main pills row has', mainPillsRow.children.length, 'children before adding pills');
+                console.log('Main pills row children:', Array.from(mainPillsRow.children).map(c => c.textContent?.trim()));
+                console.log('Main pills row computed style:', window.getComputedStyle(mainPillsRow).display);
+                console.log('Main pills row visibility:', window.getComputedStyle(mainPillsRow).visibility);
+                console.log('Main pills row position:', mainPillsRow.getBoundingClientRect());
             }
-            
             if (filterMenuPillsRow) {
-                // Keep only the permanent "Ship to store" pill
-                const permanentPill = filterMenuPillsRow.querySelector('.filter-pill:not(.removable)');
-                filterMenuPillsRow.innerHTML = '';
-                if (permanentPill) {
-                    filterMenuPillsRow.appendChild(permanentPill);
-                }
+                console.log('Filter menu pills row has', filterMenuPillsRow.children.length, 'children before adding pills');
+                console.log('Filter menu pills row children:', Array.from(filterMenuPillsRow.children).map(c => c.textContent?.trim()));
             }
             
-            // Check if we're viewing a saved search
-            const isViewingSavedSearch = sessionStorage.getItem('isViewingSavedSearch') === 'true';
-            const selectedSavedSearch = sessionStorage.getItem('selectedSavedSearch');
-            
-            if (isViewingSavedSearch && selectedSavedSearch) {
-                // Clear all removable pills first
-                const existingPills = document.querySelectorAll('.filter-pill.removable');
-                existingPills.forEach(pill => pill.remove());
-                
-                // Add the saved search name pill
-                const mainPillsRow = document.querySelector('.filter-pills .filter-pills-row');
-                const filterMenuPillsRow = document.querySelector('.filter-pills-section .filter-pills-row');
-                
-                if (mainPillsRow) {
-                    const pill = document.createElement('div');
-                    pill.className = 'filter-pill removable';
-                    pill.innerHTML = `
-                        <span class="filter-pill-text">${selectedSavedSearch}</span>
-                        <button class="filter-pill-close" onclick="removeFilterPill(this)">
-                            <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                        </button>
-                    `;
-                    mainPillsRow.appendChild(pill);
+            // Clear all removable pills
+            [mainPillsRow, filterMenuPillsRow].forEach(container => {
+                if (container) {
+                    const removablePills = container.querySelectorAll('.filter-pill.removable');
+                    removablePills.forEach(pill => pill.remove());
                 }
-                
-                if (filterMenuPillsRow) {
-                    const pill = document.createElement('div');
-                    pill.className = 'filter-pill removable';
-                    pill.innerHTML = `
-                        <span class="filter-pill-text">${selectedSavedSearch}</span>
-                        <button class="filter-pill-close" onclick="removeFilterPill(this)">
-                            <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                        </button>
-                    `;
-                    filterMenuPillsRow.appendChild(pill);
-                }
-                
-                // ALSO show the individual filters that were applied
-                const appliedFilters = sessionStorage.getItem('appliedFilters');
-                if (appliedFilters) {
-                    try {
-                        const filters = JSON.parse(appliedFilters);
-                        console.log('Showing individual filters for saved search:', filters);
-                        
-                        // Add individual filter pills directly
-                        if (filters.bodyStyle) {
-                            const bodyStyleMap = {
-                                'sedan': 'Sedan',
-                                'convertible': 'Convertible', 
-                                'suv': 'SUV',
-                                'coupe': 'Coupe',
-                                'hatchback': 'Hatchback',
-                                'truck': 'Truck',
-                                'wagon': 'Wagon',
-                                'minivan': 'Minivan'
-                            };
-                            const bodyStyleName = bodyStyleMap[filters.bodyStyle];
-                            if (bodyStyleName) {
-                                // Add to main pills
-                                if (mainPillsRow) {
-                                    const pill = document.createElement('div');
-                                    pill.className = 'filter-pill removable';
-                                    pill.innerHTML = `
-                                        <span class="filter-pill-text">${bodyStyleName}</span>
-                                        <button class="filter-pill-close" onclick="removeFilterPill(this)">
-                                            <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                                        </button>
-                                    `;
-                                    mainPillsRow.appendChild(pill);
-                                }
-                                // Add to filter menu pills
-                                if (filterMenuPillsRow) {
-                                    const pill = document.createElement('div');
-                                    pill.className = 'filter-pill removable';
-                                    pill.innerHTML = `
-                                        <span class="filter-pill-text">${bodyStyleName}</span>
-                                        <button class="filter-pill-close" onclick="removeFilterPill(this)">
-                                            <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                                        </button>
-                                    `;
-                                    filterMenuPillsRow.appendChild(pill);
-                                }
-                            }
-                        }
-                        
-                        if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
-                            const minValue = filters.priceMin !== undefined ? filters.priceMin : 5000;
-                            const maxValue = filters.priceMax !== undefined ? filters.priceMax : 70000;
-                            const minFormatted = '$' + parseInt(minValue).toLocaleString();
-                            const maxFormatted = '$' + parseInt(maxValue).toLocaleString();
-                            const pillText = `${minFormatted} - ${maxFormatted}`;
-                            
-                            // Add price pill to main
-                            if (mainPillsRow) {
-                                const pill = document.createElement('div');
-                                pill.className = 'filter-pill removable';
-                                pill.innerHTML = `
-                                    <span class="filter-pill-text">${pillText}</span>
-                                    <button class="filter-pill-close" onclick="removeFilterPill(this)">
-                                        <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                                    </button>
-                                `;
-                                mainPillsRow.appendChild(pill);
-                            }
-                            // Add price pill to filter menu
-                            if (filterMenuPillsRow) {
-                                const pill = document.createElement('div');
-                                pill.className = 'filter-pill removable';
-                                pill.innerHTML = `
-                                    <span class="filter-pill-text">${pillText}</span>
-                                    <button class="filter-pill-close" onclick="removeFilterPill(this)">
-                                        <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
-                                    </button>
-                                `;
-                                filterMenuPillsRow.appendChild(pill);
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Error parsing applied filters:', e);
-                    }
-                }
-                return;
-            }
+            });
             
             // Get applied filters from sessionStorage
             const appliedFilters = sessionStorage.getItem('appliedFilters');
             console.log('Applied filters from sessionStorage:', appliedFilters);
             if (!appliedFilters) {
-                isUpdatingFilterPills = false;
                 return;
             }
             
             try {
                 const filters = JSON.parse(appliedFilters);
                 console.log('Parsed filters:', filters);
+                
+                // Helper function to add a pill to both containers
+                const addPillToBothContainers = (text) => {
+                    console.log('Adding pill:', text, 'to containers:', !!mainPillsRow, !!filterMenuPillsRow);
+                    [mainPillsRow, filterMenuPillsRow].forEach(container => {
+                        if (container) {
+                            const pill = document.createElement('div');
+                            pill.className = 'filter-pill removable';
+                            pill.innerHTML = `
+                                <span class="filter-pill-text">${text}</span>
+                                <button class="filter-pill-close" onclick="removeFilterPill(this)">
+                                    <img src="Illustrations/Filter Bar Icons/X.svg" alt="Close" class="close-icon">
+                                </button>
+                            `;
+                            container.appendChild(pill);
+                            console.log('Added pill to container:', container.className);
+                            console.log('Container now has', container.children.length, 'children');
+                            console.log('Last child text:', container.lastElementChild?.textContent?.trim());
+                            console.log('Last child classes:', container.lastElementChild?.className);
+                            console.log('Last child computed style:', window.getComputedStyle(container.lastElementChild).display);
+                        }
+                    });
+                };
                 
                 // Add body style pill
                 if (filters.bodyStyle) {
@@ -5127,7 +4992,7 @@
                     };
                     const bodyStyleName = bodyStyleMap[filters.bodyStyle];
                     if (bodyStyleName) {
-                        addBodyStylePill(bodyStyleName);
+                        addPillToBothContainers(bodyStyleName);
                     }
                 }
                 
@@ -5138,51 +5003,65 @@
                     const minFormatted = '$' + parseInt(minValue).toLocaleString();
                     const maxFormatted = '$' + parseInt(maxValue).toLocaleString();
                     const pillText = `${minFormatted} - ${maxFormatted}`;
-                    
-                    addPriceFilterPillToContainer('.filter-pills .filter-pills-row', minValue, maxValue, pillText);
-                    addPriceFilterPillToContainer('.filter-pills-section .filter-pills-row', minValue, maxValue, pillText);
+                    addPillToBothContainers(pillText);
                 }
                 
                 // Add transmission pill
                 if (filters.transmission) {
-                    const transmissionName = filters.transmission.charAt(0).toUpperCase() + filters.transmission.slice(1);
-                    addFilterPill(transmissionName);
+                    const transmissionMap = {
+                        'automatic': 'Automatic',
+                        'manual': 'Manual'
+                    };
+                    const transmissionName = transmissionMap[filters.transmission];
+                    if (transmissionName) {
+                        addPillToBothContainers(transmissionName);
+                    }
                 }
                 
                 // Add fuel type pill
                 if (filters.fuelType) {
-                    const fuelTypeName = filters.fuelType.charAt(0).toUpperCase() + filters.fuelType.slice(1);
-                    addFilterPill(fuelTypeName);
+                    const fuelTypeMap = {
+                        'gas': 'Gas',
+                        'hybrid': 'Hybrid',
+                        'electric': 'Electric'
+                    };
+                    const fuelTypeName = fuelTypeMap[filters.fuelType];
+                    if (fuelTypeName) {
+                        addPillToBothContainers(fuelTypeName);
+                    }
                 }
                 
                 // Add drivetrain pill
                 if (filters.drivetrain) {
-                    const drivetrainName = filters.drivetrain.toUpperCase();
-                    addFilterPill(drivetrainName);
+                    const drivetrainMap = {
+                        'fwd': 'FWD',
+                        'rwd': 'RWD',
+                        'awd': 'AWD'
+                    };
+                    const drivetrainName = drivetrainMap[filters.drivetrain];
+                    if (drivetrainName) {
+                        addPillToBothContainers(drivetrainName);
+                    }
                 }
                 
                 // Add year pill
                 if (filters.yearMin) {
-                    const yearText = `${filters.yearMin}+`;
-                    addFilterPill(yearText);
+                    addPillToBothContainers(`${filters.yearMin}+`);
                 }
                 
                 // Add make pill
                 if (filters.make) {
-                    addFilterPill(filters.make);
+                    addPillToBothContainers(filters.make);
                 }
                 
                 // Add model pill
                 if (filters.model) {
-                    addFilterPill(filters.model);
+                    addPillToBothContainers(filters.model);
                 }
                 
             } catch (e) {
                 console.error('Error parsing applied filters:', e);
             }
-            
-            // Reset the flag
-            isUpdatingFilterPills = false;
         }
         
         function addFilterPill(text) {
@@ -5420,10 +5299,100 @@
             // Store sort preference in sessionStorage
             sessionStorage.setItem('sortBy', sortType);
             
+            // Reorder the vehicles based on sort type
+            reorderVehicles(sortType);
+            
             // Close the sort menu
             setTimeout(() => {
                 closeSortMenu();
             }, 300);
+        }
+
+        function reorderVehicles(sortType) {
+            const srpTiles = document.querySelectorAll('.srp-tile');
+            const tilesArray = Array.from(srpTiles);
+            const container = document.querySelector('.srp-tiles-container');
+            
+            if (!container || tilesArray.length === 0) return;
+            
+            // Clear all badges first - they'll be re-added only for saved searches
+            const existingBadges = document.querySelectorAll('.srp-tile-new-badge');
+            existingBadges.forEach(badge => badge.remove());
+            
+            // Create a copy of tiles with their data for sorting
+            const tilesWithData = tilesArray.map(tile => {
+                const priceText = tile.querySelector('.price')?.textContent || '';
+                const yearText = tile.querySelector('.year')?.textContent || '';
+                const mileageText = tile.querySelector('.mileage')?.textContent || '';
+                const hasNewBadge = tile.querySelector('.srp-tile-new-badge') !== null;
+                
+                // Extract numeric values
+                const price = parseInt(priceText.replace(/[$,]/g, '')) || 0;
+                const year = parseInt(yearText) || 0;
+                const mileage = parseInt(mileageText.replace(/[,\s]/g, '')) || 0;
+                
+                return {
+                    element: tile,
+                    price,
+                    year,
+                    mileage,
+                    hasNewBadge
+                };
+            });
+            
+            // Sort based on sort type
+            let sortedTiles;
+            switch (sortType) {
+                case 'new-arrivals':
+                    // New arrivals: new badges first, then by year (newest first)
+                    sortedTiles = tilesWithData.sort((a, b) => {
+                        if (a.hasNewBadge && !b.hasNewBadge) return -1;
+                        if (!a.hasNewBadge && b.hasNewBadge) return 1;
+                        return b.year - a.year;
+                    });
+                    break;
+                case 'price-lowest':
+                    // Price lowest: sort by price ascending
+                    sortedTiles = tilesWithData.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-highest':
+                    // Price highest: sort by price descending
+                    sortedTiles = tilesWithData.sort((a, b) => b.price - a.price);
+                    break;
+                case 'year-newest':
+                    // Year newest: sort by year descending
+                    sortedTiles = tilesWithData.sort((a, b) => b.year - a.year);
+                    break;
+                case 'year-oldest':
+                    // Year oldest: sort by year ascending
+                    sortedTiles = tilesWithData.sort((a, b) => a.year - b.year);
+                    break;
+                case 'mileage-lowest':
+                    // Mileage lowest: sort by mileage ascending
+                    sortedTiles = tilesWithData.sort((a, b) => a.mileage - b.mileage);
+                    break;
+                case 'mileage-highest':
+                    // Mileage highest: sort by mileage descending
+                    sortedTiles = tilesWithData.sort((a, b) => b.mileage - a.mileage);
+                    break;
+                case 'distance-nearest':
+                default:
+                    // Distance nearest: keep original order
+                    sortedTiles = tilesWithData;
+                    break;
+            }
+            
+            // Reorder the DOM elements
+            sortedTiles.forEach(tileData => {
+                container.appendChild(tileData.element);
+            });
+            
+            // Re-add badges only if we're currently in a saved search
+            const isViewingSavedSearch = sessionStorage.getItem('isViewingSavedSearch') === 'true';
+            const selectedSavedSearch = sessionStorage.getItem('selectedSavedSearch');
+            if (isViewingSavedSearch && selectedSavedSearch) {
+                addNewCarBadgesToTiles(selectedSavedSearch);
+            }
         }
 
 
@@ -5552,10 +5521,10 @@
         }
 
         function getVehicleCount(searchName) {
-            // Generate consistent random numbers between 4-24 for each search
+            // Generate consistent random numbers between 1-9 for each search
             const seed = searchName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
             const random = (seed * 9301 + 49297) % 233280;
-            return Math.floor((random / 233280) * 21) + 4; // 4-24 range
+            return Math.floor((random / 233280) * 9) + 1; // 1-9 range
         }
 
         function addNewCarBadgesToTiles(searchName) {
@@ -5786,12 +5755,18 @@
             // Add new car badges to SRP tiles based on the count
             addNewCarBadgesToTiles(search.name);
             
+            // Apply the sort order (new arrivals for saved searches)
+            reorderVehicles('new-arrivals');
+            
             // Update the My searches tab to highlight the selected search
             updateMySearchesContent();
             
             // Mark as saved since we're now in a saved search
             isSearchSaved = true;
             updateSaveSearchButton();
+            
+            // Ensure the saved search state is properly maintained
+            checkIfStillInSavedSearch();
             
             console.log('Applied saved search:', search.name);
             console.log('Filters applied:', filters);
@@ -6360,8 +6335,16 @@
         }
 
         function resetAllFilters() {
-            // Remove all filter pills
-            const allPills = document.querySelectorAll('.body-style-pill, .price-range-pill');
+            // Clear saved search state from sessionStorage
+            sessionStorage.removeItem('isViewingSavedSearch');
+            sessionStorage.removeItem('selectedSavedSearch');
+            sessionStorage.removeItem('appliedFilters');
+            
+            // Clear saved search state
+            isSearchSaved = false;
+            
+            // Remove all filter pills (including removable ones)
+            const allPills = document.querySelectorAll('.body-style-pill, .price-range-pill, .filter-pill.removable');
             allPills.forEach(pill => pill.remove());
             
             // Clear localStorage
@@ -6397,6 +6380,10 @@
             
             // Update My searches content if it's open
             updateMySearchesContent();
+            
+            // Clear any new car badges from SRP tiles
+            const badges = document.querySelectorAll('.srp-tile-new-badge');
+            badges.forEach(badge => badge.remove());
         }
 
         function removePriceFilterPill() {
@@ -6420,28 +6407,41 @@
         }
 
         function checkIfStillInSavedSearch() {
-            // Get current filter state
-            const currentBodyStyles = JSON.parse(localStorage.getItem('selectedBodyStyles') || '[]');
-            const currentPriceRange = JSON.parse(localStorage.getItem('priceRange') || '{"min":"5000","max":"70000"}');
-            
-            // Get saved searches
-            const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
-            
-            // Check if current filters match any saved search
-            const matchingSearch = findMatchingSearch(currentBodyStyles, currentPriceRange, savedSearches);
+            // Check if we're currently viewing a saved search from sessionStorage
+            const isViewingSavedSearch = sessionStorage.getItem('isViewingSavedSearch') === 'true';
+            const selectedSavedSearch = sessionStorage.getItem('selectedSavedSearch');
+            const appliedFilters = sessionStorage.getItem('appliedFilters');
             
             const wasSearchSaved = isSearchSaved;
             
-            if (matchingSearch) {
-                // Still in a saved search
+            if (isViewingSavedSearch && selectedSavedSearch && appliedFilters) {
+                // Currently viewing a saved search
                 isSearchSaved = true;
                 
                 // Set sort to "New arrivals" for saved searches
                 sessionStorage.setItem('sortBy', 'new-arrivals');
                 updateSortMenuDisplay('new-arrivals');
+                
+                // Apply the saved search filters
+                try {
+                    const filters = JSON.parse(appliedFilters);
+                    applySavedSearchFilters(filters);
+                    
+                    // Update filter pills to show the applied filters
+                    updateFilterPills();
+                    
+                    // Add new car badges to SRP tiles
+                    addNewCarBadgesToTiles(selectedSavedSearch);
+                } catch (e) {
+                    console.error('Error applying saved search filters:', e);
+                }
             } else {
-                // No longer in a saved search
+                // Not viewing a saved search
                 isSearchSaved = false;
+                
+                // Clear any existing new car badges
+                const existingBadges = document.querySelectorAll('.srp-tile-new-badge');
+                existingBadges.forEach(badge => badge.remove());
             }
             
             // Only update button if state actually changed
@@ -7592,9 +7592,19 @@
             // Restore filter state (including price range pills)
             restoreFilterState();
             
-            // Only check for saved searches if user is signed in
-            if (isSignedIn) {
-                checkIfStillInSavedSearch();
+            // If navigation came from the search bar, prefer unified flow by index
+            const pendingIndex = sessionStorage.getItem('selectedSavedSearchIndex');
+            if (pendingIndex !== null) {
+                const idx = parseInt(pendingIndex, 10);
+                if (!isNaN(idx)) {
+                    applySavedSearch(idx);
+                }
+                sessionStorage.removeItem('selectedSavedSearchIndex');
+            } else {
+                // Only check for saved searches if user is signed in
+                if (isSignedIn) {
+                    checkIfStillInSavedSearch();
+                }
             }
             
             updateSaveSearchButton();

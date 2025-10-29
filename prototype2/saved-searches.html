@@ -290,73 +290,15 @@
                     <img src="Illustrations/02_Filter/saved-searches.svg" alt="Search" class="saved-search-icon">
                     <span class="saved-search-text">${search.name}</span>
                 `;
-                searchItem.onclick = () => selectSavedSearch(search);
+                // Use unified selection by index so SRP can call the same logic
+                searchItem.onclick = () => selectSavedSearchByIndex(index);
                 savedSearchesList.appendChild(searchItem);
             });
         }
 
-        function selectSavedSearch(search) {
-            // Store the selected search in sessionStorage for context
-            sessionStorage.setItem('selectedSavedSearch', search.name);
-            
-            // Apply filters based on the saved search data
-            const filters = {};
-            
-            // Apply body styles
-            if (search.bodyStyles && search.bodyStyles.length > 0) {
-                const bodyStyleMap = {
-                    'Sedan': 'sedan',
-                    'Convertible': 'convertible', 
-                    'SUV': 'suv',
-                    'Coupe': 'coupe',
-                    'Hatchback': 'hatchback',
-                    'Truck': 'truck',
-                    'Wagon': 'wagon',
-                    'Minivan': 'minivan'
-                };
-                const bodyStyle = search.bodyStyles[0]; // Take first body style
-                if (bodyStyleMap[bodyStyle]) {
-                    filters.bodyStyle = bodyStyleMap[bodyStyle];
-                }
-            }
-            
-            // Apply price range
-            if (search.priceRange) {
-                // Always include price range if it's different from default
-                const minValue = parseInt(search.priceRange.min);
-                const maxValue = parseInt(search.priceRange.max);
-                
-                if (minValue !== 5000 || maxValue !== 70000) {
-                    filters.priceMin = minValue;
-                    filters.priceMax = maxValue;
-                }
-            }
-            
-            // Apply other filters
-            if (search.transmission) {
-                filters.transmission = search.transmission;
-            }
-            if (search.fuelType) {
-                filters.fuelType = search.fuelType;
-            }
-            if (search.drivetrain) {
-                filters.drivetrain = search.drivetrain;
-            }
-            if (search.yearMin) {
-                filters.yearMin = search.yearMin;
-            }
-            if (search.make) {
-                filters.make = search.make;
-            }
-            if (search.model) {
-                filters.model = search.model;
-            }
-            
-            // Store the filters in sessionStorage
-            sessionStorage.setItem('appliedFilters', JSON.stringify(filters));
-            sessionStorage.setItem('isViewingSavedSearch', 'true');
-            
-            // Navigate to search results page
+        function selectSavedSearchByIndex(index) {
+            // Store only the index; SRP will call applySavedSearch(index) for unified logic
+            sessionStorage.setItem('selectedSavedSearchIndex', String(index));
             window.location.href = 'search-not-saved.html';
         }
 
