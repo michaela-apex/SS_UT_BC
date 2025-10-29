@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EchoPark - Saved Searches</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: white;
+            overflow-x: hidden;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 375px;
+            min-height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            background: white;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Mobile-first responsive design */
+        @media (max-width: 600px) {
+            .mobile-container {
+                width: 100vw;
+                max-width: none;
+            }
+        }
+
+        @media (min-width: 601px) {
+            .mobile-container {
+                width: 375px;
+                border: 2px solid #007bff;
+                box-shadow: 0 0 30px rgba(0,123,255,0.3);
+                margin: 20px auto;
+                border-radius: 20px;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: relative;
+        }
+
+        .search-input-container {
+            position: relative;
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #d4d7d9;
+            border-radius: 28px;
+            padding: 0 24px 0 24px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            color: #242c33;
+            line-height: 16px;
+            outline: none;
+            background: white;
+        }
+
+        .search-input::placeholder {
+            color: #242c33;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .search-clear-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .cancel-button {
+            background: none;
+            border: none;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            color: #006fa6;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Saved Searches Section */
+        .saved-searches-section {
+            padding: 24px;
+        }
+
+        .saved-searches-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .saved-searches-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+            font-size: 16px;
+            color: #242c33;
+            line-height: 24px;
+        }
+
+        .divider {
+            flex: 1;
+            height: 1px;
+            background: #e8e9eb;
+        }
+
+        .saved-searches-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .saved-search-item {
+            background: #e6f1f5;
+            border: 1px solid #006ea6;
+            border-radius: 32px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            gap: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: fit-content;
+        }
+
+        .saved-search-item:hover {
+            background: #d1e7f0;
+        }
+
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .saved-search-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .saved-search-text {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: #006fa6;
+            line-height: 22px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="search-input-container">
+                <input type="text" class="search-input" placeholder="|" autofocus>
+                <button class="search-clear">
+                    <img src="Illustrations/Toast icons/pop-up close icon.svg" alt="Clear" class="search-clear-icon">
+                </button>
+            </div>
+            <button class="cancel-button" onclick="goBack()">Cancel</button>
+        </div>
+
+        <!-- Saved Searches Section -->
+        <div class="saved-searches-section">
+            <div class="saved-searches-header">
+                <span class="saved-searches-title">Saved searches</span>
+                <div class="divider"></div>
+            </div>
+            <div class="saved-searches-list" id="savedSearchesList">
+                <!-- Saved searches will be populated dynamically -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const isLoggedIn = localStorage.getItem('isSignedIn') === 'true';
+        
+        // For testing: Set user as logged in if not already
+        if (!isLoggedIn) {
+            localStorage.setItem('isSignedIn', 'true');
+        }
+        
+        // Redirect to homepage if still not logged in
+        if (!localStorage.getItem('isSignedIn') === 'true') {
+            window.location.href = 'homepage.html';
+        }
+
+        function goBack() {
+            // Check if there's a previous page in history
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // Default to homepage if no history
+                window.location.href = 'homepage.html';
+            }
+        }
+
+        // Initialize saved searches on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateSavedSearches();
+            
+            // Listen for changes to saved searches from other tabs/pages
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'savedSearches') {
+                    populateSavedSearches();
+                }
+            });
+            
+            // Refresh saved searches when page becomes visible (user navigates back)
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    populateSavedSearches();
+                }
+            });
+        });
+
+        function populateSavedSearches() {
+            const savedSearchesList = document.getElementById('savedSearchesList');
+            if (!savedSearchesList) return;
+
+            // Get saved searches from localStorage
+            const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
+            
+            // Clear existing content
+            savedSearchesList.innerHTML = '';
+
+            if (savedSearches.length === 0) {
+                // Show empty state
+                savedSearchesList.innerHTML = `
+                    <div class="empty-state">
+                        <p>No saved searches yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Create saved search items
+            savedSearches.forEach((search, index) => {
+                const searchItem = document.createElement('div');
+                searchItem.className = 'saved-search-item';
+                searchItem.innerHTML = `
+                    <img src="Illustrations/02_Filter/saved-searches.svg" alt="Search" class="saved-search-icon">
+                    <span class="saved-search-text">${search.name}</span>
+                `;
+                searchItem.onclick = () => selectSavedSearch(search);
+                savedSearchesList.appendChild(searchItem);
+            });
+        }
+
+        function selectSavedSearch(search) {
+            // Store the selected search in sessionStorage for context
+            sessionStorage.setItem('selectedSavedSearch', search.name);
+            
+            // Apply filters based on the saved search data
+            const filters = {};
+            
+            // Apply body styles
+            if (search.bodyStyles && search.bodyStyles.length > 0) {
+                const bodyStyleMap = {
+                    'Sedan': 'sedan',
+                    'Convertible': 'convertible', 
+                    'SUV': 'suv',
+                    'Coupe': 'coupe',
+                    'Hatchback': 'hatchback',
+                    'Truck': 'truck',
+                    'Wagon': 'wagon',
+                    'Minivan': 'minivan'
+                };
+                const bodyStyle = search.bodyStyles[0]; // Take first body style
+                if (bodyStyleMap[bodyStyle]) {
+                    filters.bodyStyle = bodyStyleMap[bodyStyle];
+                }
+            }
+            
+            // Apply price range
+            if (search.priceRange) {
+                // Always include price range if it's different from default
+                const minValue = parseInt(search.priceRange.min);
+                const maxValue = parseInt(search.priceRange.max);
+                
+                if (minValue !== 5000 || maxValue !== 70000) {
+                    filters.priceMin = minValue;
+                    filters.priceMax = maxValue;
+                }
+            }
+            
+            // Apply other filters
+            if (search.transmission) {
+                filters.transmission = search.transmission;
+            }
+            if (search.fuelType) {
+                filters.fuelType = search.fuelType;
+            }
+            if (search.drivetrain) {
+                filters.drivetrain = search.drivetrain;
+            }
+            if (search.yearMin) {
+                filters.yearMin = search.yearMin;
+            }
+            if (search.make) {
+                filters.make = search.make;
+            }
+            if (search.model) {
+                filters.model = search.model;
+            }
+            
+            // Store the filters in sessionStorage
+            sessionStorage.setItem('appliedFilters', JSON.stringify(filters));
+            sessionStorage.setItem('isViewingSavedSearch', 'true');
+            
+            // Navigate to search results page
+            window.location.href = 'search-not-saved.html';
+        }
+
+
+        // Handle clear button
+        document.querySelector('.search-clear').addEventListener('click', function() {
+            document.querySelector('.search-input').value = '';
+        });
+    </script>
+</body>
+</html>
