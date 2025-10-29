@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/search-not-saved.html"
+    }
+  ]
+}
