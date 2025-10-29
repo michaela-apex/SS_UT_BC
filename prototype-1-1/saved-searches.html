@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EchoPark - Saved Searches</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: white;
+            overflow-x: hidden;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 375px;
+            min-height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            background: white;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Mobile-first responsive design */
+        @media (max-width: 600px) {
+            .mobile-container {
+                width: 100vw;
+                max-width: none;
+            }
+        }
+
+        @media (min-width: 601px) {
+            .mobile-container {
+                width: 375px;
+                border: 2px solid #007bff;
+                box-shadow: 0 0 30px rgba(0,123,255,0.3);
+                margin: 20px auto;
+                border-radius: 20px;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0px 1px 4px 0px rgba(36,44,51,0.12);
+            height: 80px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: relative;
+        }
+
+        .search-input-container {
+            position: relative;
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #d4d7d9;
+            border-radius: 28px;
+            padding: 0 24px 0 24px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            color: #242c33;
+            line-height: 16px;
+            outline: none;
+            background: white;
+        }
+
+        .search-input::placeholder {
+            color: #242c33;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .search-clear-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .cancel-button {
+            background: none;
+            border: none;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            color: #006fa6;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Saved Searches Section */
+        .saved-searches-section {
+            padding: 24px;
+        }
+
+        .saved-searches-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .saved-searches-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+            font-size: 16px;
+            color: #242c33;
+            line-height: 24px;
+        }
+
+        .divider {
+            flex: 1;
+            height: 1px;
+            background: #e8e9eb;
+        }
+
+        .saved-searches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .saved-search-item {
+            background: #e6f1f5;
+            border: 1px solid #006ea6;
+            border-radius: 32px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            padding: 4px 12px;
+            gap: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .saved-search-item:hover {
+            background: #d1e7f0;
+        }
+
+        .saved-search-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .saved-search-text {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: #006fa6;
+            line-height: 22px;
+        }
+
+        /* iPhone Keyboard */
+        .keyboard {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 291px;
+            background: linear-gradient(90deg, rgba(235, 240, 247, 0.5) 0%, rgba(235, 240, 247, 0.5) 100%), 
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.5) 100%);
+            background-blend-mode: color-burn;
+            backdrop-filter: blur(26.576px);
+            z-index: 1000;
+        }
+
+        .keyboard-keys {
+            position: absolute;
+            top: 9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 375px;
+            height: 200px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .keyboard-key {
+            width: 33px;
+            height: 42px;
+            background: #fcfcfe;
+            border-radius: 4.6px;
+            box-shadow: 0px 1px 0px 0px #898a8d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'SF Pro', sans-serif;
+            font-weight: 400;
+            font-size: 22px;
+            color: black;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .keyboard-key.space {
+            width: 190px;
+        }
+
+        .keyboard-key.return {
+            width: 91px;
+            background: #007aff;
+            color: white;
+        }
+
+        .keyboard-key.return .key-text {
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .keyboard-key.special {
+            width: 44px;
+        }
+
+        .keyboard-key.shift {
+            width: 44px;
+        }
+
+        .keyboard-key.123 {
+            width: 91px;
+        }
+
+        .keyboard-bottom {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: black;
+            border-radius: 100px;
+        }
+
+        .keyboard-emoji {
+            position: absolute;
+            bottom: 56px;
+            left: 26px;
+            font-size: 27px;
+            color: #50555c;
+        }
+
+        .keyboard-mic {
+            position: absolute;
+            bottom: 56px;
+            right: 54px;
+            font-size: 27px;
+            color: #50555c;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="search-input-container">
+                <input type="text" class="search-input" placeholder="|" autofocus>
+                <button class="search-clear">
+                    <img src="Illustrations/04_UI/x.svg" alt="Clear" class="search-clear-icon">
+                </button>
+            </div>
+            <button class="cancel-button" onclick="goBack()">Cancel</button>
+        </div>
+
+        <!-- Saved Searches Section -->
+        <div class="saved-searches-section">
+            <div class="saved-searches-header">
+                <span class="saved-searches-title">Saved searches</span>
+                <div class="divider"></div>
+            </div>
+            <div class="saved-searches-list">
+                <div class="saved-search-item" onclick="selectSavedSearch('Under $15k for Sally')">
+                    <img src="Illustrations/02_Filter/saved-search-car-icon.svg" alt="Search" class="saved-search-icon">
+                    <span class="saved-search-text">Under $15k for Sally</span>
+                </div>
+                <div class="saved-search-item" onclick="selectSavedSearch('John\'s car')">
+                    <img src="Illustrations/02_Filter/saved-search-car-icon.svg" alt="Search" class="saved-search-icon">
+                    <span class="saved-search-text">John's car</span>
+                </div>
+                <div class="saved-search-item" onclick="selectSavedSearch('High safety rating')">
+                    <img src="Illustrations/02_Filter/saved-search-car-icon.svg" alt="Search" class="saved-search-icon">
+                    <span class="saved-search-text">High safety rating</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- iPhone Keyboard -->
+        <div class="keyboard">
+            <div class="keyboard-keys">
+                <!-- First row -->
+                <div class="keyboard-row">
+                    <div class="keyboard-key">Q</div>
+                    <div class="keyboard-key">W</div>
+                    <div class="keyboard-key">E</div>
+                    <div class="keyboard-key">R</div>
+                    <div class="keyboard-key">T</div>
+                    <div class="keyboard-key">Y</div>
+                    <div class="keyboard-key">U</div>
+                    <div class="keyboard-key">I</div>
+                    <div class="keyboard-key">O</div>
+                    <div class="keyboard-key">P</div>
+                </div>
+                <!-- Second row -->
+                <div class="keyboard-row">
+                    <div class="keyboard-key">A</div>
+                    <div class="keyboard-key">S</div>
+                    <div class="keyboard-key">D</div>
+                    <div class="keyboard-key">F</div>
+                    <div class="keyboard-key">G</div>
+                    <div class="keyboard-key">H</div>
+                    <div class="keyboard-key">J</div>
+                    <div class="keyboard-key">K</div>
+                    <div class="keyboard-key">L</div>
+                </div>
+                <!-- Third row -->
+                <div class="keyboard-row">
+                    <div class="keyboard-key shift">⇧</div>
+                    <div class="keyboard-key">Z</div>
+                    <div class="keyboard-key">X</div>
+                    <div class="keyboard-key">C</div>
+                    <div class="keyboard-key">V</div>
+                    <div class="keyboard-key">B</div>
+                    <div class="keyboard-key">N</div>
+                    <div class="keyboard-key">M</div>
+                    <div class="keyboard-key special">⌫</div>
+                </div>
+                <!-- Fourth row -->
+                <div class="keyboard-row">
+                    <div class="keyboard-key 123">123</div>
+                    <div class="keyboard-key space">space</div>
+                    <div class="keyboard-key return">
+                        <span class="key-text">return</span>
+                    </div>
+                </div>
+            </div>
+            <div class="keyboard-bottom"></div>
+            <div class="keyboard-emoji">😀</div>
+            <div class="keyboard-mic">🎤</div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            // Check if there's a previous page in history
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // Default to homepage if no history
+                window.location.href = 'homepage.html';
+            }
+        }
+
+        function selectSavedSearch(searchName) {
+            // Store the selected search in sessionStorage for context
+            sessionStorage.setItem('selectedSavedSearch', searchName);
+            
+            // Navigate to search results page
+            window.location.href = 'search-not-saved.html';
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', function(event) {
+            // Prevent default behavior for most keys
+            if (event.key.length === 1) {
+                event.preventDefault();
+                // Add character to search input
+                const searchInput = document.querySelector('.search-input');
+                searchInput.value += event.key;
+            }
+        });
+
+        // Handle clear button
+        document.querySelector('.search-clear').addEventListener('click', function() {
+            document.querySelector('.search-input').value = '';
+        });
+    </script>
+</body>
+</html>

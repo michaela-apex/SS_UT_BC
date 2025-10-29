@@ -1831,6 +1831,88 @@
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
 
+        /* Sort Menu Styles */
+        .sort-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+        }
+
+        .sort-menu-overlay.show {
+            display: block;
+        }
+
+        .sort-menu-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            width: 327px;
+            max-height: 400px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .sort-menu-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid #e8e9eb;
+        }
+
+        .sort-menu-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 18px;
+            color: #242c33;
+            margin: 0;
+        }
+
+        .sort-menu-options {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .sort-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .sort-option:hover {
+            background: #f8f9fa;
+        }
+
+        .sort-option:last-child {
+            border-bottom: none;
+        }
+
+        .sort-option-text {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            color: #242c33;
+        }
+
+        .sort-option-check {
+            width: 20px;
+            height: 20px;
+            display: none;
+        }
+
+        .sort-option.selected .sort-option-check {
+            display: block;
+        }
+
         .price-payment-bottom {
             position: fixed;
             bottom: 0;
@@ -2711,8 +2793,8 @@
                     <img src="Illustrations/07_SRP/account.svg" alt="Account" class="icon">
                 </div>
             </div>
-            <div class="search-container">
-                <input type="text" class="search-field" placeholder="Search make, model, or feature">
+            <div class="search-container" onclick="navigateToSavedSearches()">
+                <input type="text" class="search-field" placeholder="Search make, model, or feature" readonly>
                 <button class="search-btn">
                     <img src="Illustrations/Filter Bar Icons/Inputs/Button/Smalls/search-default.svg" alt="Search" class="search-icon">
                 </button>
@@ -2726,7 +2808,7 @@
                 <span class="filter-text">Filters</span>
             </div>
             <div class="filter-divider"></div>
-            <div class="filter-section">
+            <div class="filter-section" onclick="openSortMenu()">
                 <img src="Illustrations/04_UI/sort.svg" alt="Sort" class="filter-icon">
                 <span class="filter-text">Sort by</span>
             </div>
@@ -4437,6 +4519,49 @@
         </div>
     </div>
 
+    <!-- Sort Menu Overlay -->
+    <div id="sortMenu" class="sort-menu-overlay">
+        <div class="sort-menu-panel">
+            <div class="sort-menu-header">
+                <h3 class="sort-menu-title">Sort by</h3>
+            </div>
+            <div class="sort-menu-options">
+                <div class="sort-option" onclick="selectSortOption(this, 'new-arrivals')">
+                    <span class="sort-option-text">New Arrivals</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option selected" onclick="selectSortOption(this, 'distance-nearest')">
+                    <span class="sort-option-text">Distance: Nearest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option" onclick="selectSortOption(this, 'mileage-highest')">
+                    <span class="sort-option-text">Mileage: Highest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option" onclick="selectSortOption(this, 'mileage-lowest')">
+                    <span class="sort-option-text">Mileage: Lowest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option" onclick="selectSortOption(this, 'price-highest')">
+                    <span class="sort-option-text">Price: Highest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option" onclick="selectSortOption(this, 'price-lowest')">
+                    <span class="sort-option-text">Price: Lowest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option" onclick="selectSortOption(this, 'year-newest')">
+                    <span class="sort-option-text">Year: Newest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+                <div class="sort-option" onclick="selectSortOption(this, 'year-oldest')">
+                    <span class="sort-option-text">Year: Oldest</span>
+                    <img src="Illustrations/02_Filter/check.svg" alt="Selected" class="sort-option-check">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global state
         let isSignedIn = localStorage.getItem('isSignedIn') === 'true'; // Restore from localStorage
@@ -4462,6 +4587,10 @@
 
         function navigateToHomepage() {
             window.location.href = 'homepage.html';
+        }
+
+        function navigateToSavedSearches() {
+            window.location.href = 'saved-searches.html';
         }
 
         function navigateToSearch() {
@@ -4565,6 +4694,53 @@
                 }, 300);
             }
         }
+
+        function openSortMenu() {
+            const sortMenu = document.getElementById('sortMenu');
+            if (sortMenu) {
+                sortMenu.classList.add('show');
+                // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeSortMenu() {
+            const sortMenu = document.getElementById('sortMenu');
+            if (sortMenu) {
+                sortMenu.classList.remove('show');
+                // Restore background scrolling
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function selectSortOption(element, sortType) {
+            // Remove selected class from all options
+            const allOptions = document.querySelectorAll('.sort-option');
+            allOptions.forEach(option => option.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            
+            // Store sort preference in sessionStorage
+            sessionStorage.setItem('sortBy', sortType);
+            
+            // Close the sort menu
+            setTimeout(() => {
+                closeSortMenu();
+            }, 300);
+        }
+
+        // Close sort menu when clicking on overlay
+        document.addEventListener('click', function(event) {
+            const sortMenu = document.getElementById('sortMenu');
+            const sortMenuPanel = document.querySelector('.sort-menu-panel');
+            
+            if (sortMenu && sortMenu.classList.contains('show')) {
+                if (event.target === sortMenu && !sortMenuPanel.contains(event.target)) {
+                    closeSortMenu();
+                }
+            }
+        });
 
         function switchToFiltersTab() {
             // Update tab states

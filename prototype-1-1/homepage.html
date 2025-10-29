@@ -560,8 +560,8 @@
                     <img src="Illustrations/07_SRP/account.svg" alt="Account" class="icon">
                 </div>
             </div>
-            <div class="search-container">
-                <input type="text" class="search-field" placeholder="Search make, model, or feature">
+            <div class="search-container" onclick="navigateToSavedSearches()">
+                <input type="text" class="search-field" placeholder="Search make, model, or feature" readonly>
                 <button class="search-btn">
                     <img src="Illustrations/Filter Bar Icons/Inputs/Button/Smalls/search-default.svg" alt="Search" class="search-icon">
                 </button>
@@ -716,6 +716,10 @@
 
         function navigateToSearch() {
             window.location.href = 'search-not-saved.html';
+        }
+
+        function navigateToSavedSearches() {
+            window.location.href = 'saved-searches.html';
         }
 
         function openSignIn() {
