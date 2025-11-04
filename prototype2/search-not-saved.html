@@ -7508,8 +7508,11 @@
             // Check if we're still in a saved search and update UI accordingly
             checkIfStillInSavedSearch();
             
-            // Update the "My searches" tab if it's currently open
-            updateMySearchesContent();
+            // Force update My searches content immediately after localStorage update
+            // Use setTimeout to ensure DOM has updated
+            setTimeout(() => {
+                updateMySearchesContent();
+            }, 0);
             
             // Note: localStorage.setItem() will automatically trigger storage events in other tabs/windows
             // For same-window updates, visibilitychange listener in saved-searches.html handles it
@@ -8055,11 +8058,38 @@
                 }
             }
             
-            // Restore filter state (including price range pills)
-            restoreFilterState();
+            // Only restore filters if coming from a saved search
+            const isViewingSavedSearch = sessionStorage.getItem('isViewingSavedSearch') === 'true';
+            const pendingIndex = sessionStorage.getItem('selectedSavedSearchIndex');
+            
+            if (isViewingSavedSearch || pendingIndex !== null) {
+                // Coming from saved search - restore filters
+                restoreFilterState();
+            } else {
+                // Coming from shop link or default - clear all filters
+                // Clear filter pills
+                const allPills = document.querySelectorAll('.body-style-pill, .price-range-pill, .filter-pill.removable');
+                allPills.forEach(pill => pill.remove());
+                
+                // Clear localStorage filters
+                localStorage.removeItem('selectedBodyStyles');
+                localStorage.setItem('priceRange', JSON.stringify({ min: '5000', max: '70000' }));
+                sessionStorage.removeItem('appliedFilters');
+                
+                // Reset body style selections
+                const bodyStyleOptions = document.querySelectorAll('.body-style-option');
+                bodyStyleOptions.forEach(option => option.classList.remove('selected'));
+                
+                // Reset price sliders
+                const minSlider = document.getElementById('minPriceRange');
+                const maxSlider = document.getElementById('maxPriceRange');
+                if (minSlider && maxSlider) {
+                    minSlider.value = '5000';
+                    maxSlider.value = '70000';
+                }
+            }
             
             // If navigation came from the search bar, prefer unified flow by index
-            const pendingIndex = sessionStorage.getItem('selectedSavedSearchIndex');
             if (pendingIndex !== null) {
                 const idx = parseInt(pendingIndex, 10);
                 if (!isNaN(idx)) {
