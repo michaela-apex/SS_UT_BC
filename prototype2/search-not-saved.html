@@ -5392,6 +5392,48 @@
             });
         }
         
+        function initIOSNameSearchTouchHandlers() {
+            // Get name search close button
+            const nameSearchCloseButton = document.querySelector('.name-search-close');
+            
+            if (nameSearchCloseButton) {
+                // Remove existing handler if any
+                if (nameSearchCloseButton._iosTouchHandler) {
+                    nameSearchCloseButton.removeEventListener('touchend', nameSearchCloseButton._iosTouchHandler, { passive: false });
+                }
+                
+                // Create touchend handler for iOS
+                nameSearchCloseButton._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeNameSearch();
+                };
+                
+                // Add touchend listener with passive: false to allow preventDefault
+                nameSearchCloseButton.addEventListener('touchend', nameSearchCloseButton._iosTouchHandler, { passive: false });
+            }
+            
+            // Get name search save button
+            const nameSearchSaveButton = document.querySelector('.save-search-btn');
+            
+            if (nameSearchSaveButton) {
+                // Remove existing handler if any
+                if (nameSearchSaveButton._iosTouchHandler) {
+                    nameSearchSaveButton.removeEventListener('touchend', nameSearchSaveButton._iosTouchHandler, { passive: false });
+                }
+                
+                // Create touchend handler for iOS
+                nameSearchSaveButton._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    saveNamedSearch();
+                };
+                
+                // Add touchend listener with passive: false to allow preventDefault
+                nameSearchSaveButton.addEventListener('touchend', nameSearchSaveButton._iosTouchHandler, { passive: false });
+            }
+        }
+        
         function restoreFilterMenuStates() {
             // Restore body style selections
             const selectedBodyStyles = JSON.parse(localStorage.getItem('selectedBodyStyles') || '[]');
@@ -7078,6 +7120,11 @@
                 // Initialize text field states
                 initNameSearchTextFieldStates();
                 
+                // Initialize iOS touch handlers for name search drawer
+                setTimeout(() => {
+                    initIOSNameSearchTouchHandlers();
+                }, 10);
+                
                 // Add scroll listener after delay to prevent immediate closure
                 setTimeout(() => {
                     console.log('Adding scroll listener after delay');
@@ -8020,6 +8067,7 @@
             initFilterMenuButtonTouchHandler();
             initIOSSaveSearchTouchHandlers();
             initIOSFilterPillCloseHandlers();
+            initIOSNameSearchTouchHandlers();
             
             // DEBUG: Check navigation elements visibility
             function debugNavigation() {
