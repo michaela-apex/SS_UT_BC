@@ -4991,6 +4991,9 @@
                             console.log('Last child computed style:', window.getComputedStyle(container.lastElementChild).display);
                         }
                     });
+                    
+                    // Re-initialize iOS touch handlers for filter pill close buttons after adding pills
+                    initIOSFilterPillCloseHandlers();
                 };
                 
                 // Add body style pill
@@ -5101,6 +5104,25 @@
             `;
             
             container.appendChild(pill);
+            
+            // Initialize iOS touch handlers for the new pill close button
+            const closeButton = pill.querySelector('.filter-pill-close');
+            if (closeButton) {
+                // Remove existing handler if any
+                if (closeButton._iosTouchHandler) {
+                    closeButton.removeEventListener('touchend', closeButton._iosTouchHandler, { passive: false });
+                }
+                
+                // Create touchend handler for iOS
+                closeButton._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeFilterPill(this);
+                };
+                
+                // Add touchend listener with passive: false to allow preventDefault
+                closeButton.addEventListener('touchend', closeButton._iosTouchHandler, { passive: false });
+            }
         }
 
         function removeFilterPill(button) {
@@ -5222,6 +5244,15 @@
         }
 
         function navigateToSearch() {
+            // Clear saved search state when navigating from shop link (not from saved search)
+            // Only clear if not coming from a saved search selection
+            const isComingFromSavedSearch = sessionStorage.getItem('selectedSavedSearchIndex') !== null;
+            
+            if (!isComingFromSavedSearch) {
+                // Coming from shop link - clear saved search state
+                clearSavedSearchState();
+            }
+            
             // Save current filter state before navigating
             saveFilterState();
             // Navigate to the SRP with applied filters
@@ -5307,6 +5338,51 @@
                 // Add touchend listener with passive: false to allow preventDefault
                 filterMenuButton.addEventListener('touchend', filterMenuButton._iosTouchHandler, { passive: false });
             }
+        }
+        
+        function initIOSSaveSearchTouchHandlers() {
+            // Get save search button
+            const saveSearchButton = document.querySelector('.filter-section[onclick*="handleSaveSearch"]');
+            
+            if (saveSearchButton) {
+                // Remove existing handler if any
+                if (saveSearchButton._iosTouchHandler) {
+                    saveSearchButton.removeEventListener('touchend', saveSearchButton._iosTouchHandler, { passive: false });
+                }
+                
+                // Create touchend handler for iOS
+                saveSearchButton._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSaveSearch();
+                };
+                
+                // Add touchend listener with passive: false to allow preventDefault
+                saveSearchButton.addEventListener('touchend', saveSearchButton._iosTouchHandler, { passive: false });
+            }
+        }
+        
+        function initIOSFilterPillCloseHandlers() {
+            // Get all filter pill close buttons
+            const filterPillCloseButtons = document.querySelectorAll('.filter-pill-close');
+            
+            filterPillCloseButtons.forEach(button => {
+                // Remove existing handler if any
+                if (button._iosTouchHandler) {
+                    button.removeEventListener('touchend', button._iosTouchHandler, { passive: false });
+                }
+                
+                // Create touchend handler for iOS
+                button._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Call removeFilterPill with the button
+                    removeFilterPill(this);
+                };
+                
+                // Add touchend listener with passive: false to allow preventDefault
+                button.addEventListener('touchend', button._iosTouchHandler, { passive: false });
+            });
         }
         
         function restoreFilterMenuStates() {
@@ -7323,12 +7399,8 @@
             // Update My searches content if it's currently visible
             updateMySearchesContent();
             
-            // Trigger storage event to update saved-searches.html if it's open
-            window.dispatchEvent(new StorageEvent('storage', {
-                key: 'savedSearches',
-                newValue: JSON.stringify(updatedSearches),
-                oldValue: JSON.stringify(oldSearches)
-            }));
+            // Note: localStorage.setItem() will automatically trigger storage events in other tabs/windows
+            // For same-window updates, visibilitychange listener in saved-searches.html handles it
         }
 
         function findMatchingSearch(bodyStyles, priceRange, savedSearches) {
@@ -7411,7 +7483,6 @@
             
             // Get saved searches
             const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
-            const oldSearches = JSON.parse(JSON.stringify(savedSearches)); // Keep copy for storage event
             
             // Find and remove the matching search
             const updatedSearches = savedSearches.filter(search => {
@@ -7426,7 +7497,7 @@
                 return !(bodyStylesMatch && priceRangeMatch);
             });
             
-            // Update localStorage
+            // Update localStorage - this will trigger storage events in other tabs/windows
             localStorage.setItem('savedSearches', JSON.stringify(updatedSearches));
             
             console.log('Search removed from saved searches');
@@ -7440,12 +7511,8 @@
             // Update the "My searches" tab if it's currently open
             updateMySearchesContent();
             
-            // Trigger storage event to update saved-searches.html if it's open
-            window.dispatchEvent(new StorageEvent('storage', {
-                key: 'savedSearches',
-                newValue: JSON.stringify(updatedSearches),
-                oldValue: JSON.stringify(oldSearches)
-            }));
+            // Note: localStorage.setItem() will automatically trigger storage events in other tabs/windows
+            // For same-window updates, visibilitychange listener in saved-searches.html handles it
         }
 
         function updateSaveSearchButton() {
@@ -7910,8 +7977,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded');
             
-            // Initialize iOS touch handler for filter menu button
+            // Initialize iOS touch handlers
             initFilterMenuButtonTouchHandler();
+            initIOSSaveSearchTouchHandlers();
+            initIOSFilterPillCloseHandlers();
             
             // DEBUG: Check navigation elements visibility
             function debugNavigation() {
