@@ -5189,6 +5189,9 @@
                         // No saved search active - default to Filters tab
                         switchToFiltersTab();
                     }
+                    
+                    // Add iOS touch handlers for tabs and close button
+                    addIOSFilterMenuTouchHandlers();
                 }, 10);
             }
         }
@@ -5232,12 +5235,88 @@
         function closeFilterMenu() {
             const filterMenu = document.getElementById('filterMenu');
             if (filterMenu) {
+                // Remove iOS touch handlers before closing
+                removeIOSFilterMenuTouchHandlers();
+                
                 filterMenu.classList.remove('show');
                 // Restore background scrolling
                 document.body.style.overflow = 'auto';
                 setTimeout(() => {
                     filterMenu.style.display = 'none';
                 }, 300);
+            }
+        }
+
+        function addIOSFilterMenuTouchHandlers() {
+            // Get all filter tabs
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const closeButton = document.querySelector('.filter-menu-close');
+            
+            // Add touchend handler to Filters tab
+            if (filterTabs.length > 0) {
+                const filtersTab = filterTabs[0];
+                // Remove existing handler if any
+                if (filtersTab._iosTouchHandler) {
+                    filtersTab.removeEventListener('touchend', filtersTab._iosTouchHandler, { passive: false });
+                }
+                
+                filtersTab._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    switchToFiltersTab();
+                };
+                filtersTab.addEventListener('touchend', filtersTab._iosTouchHandler, { passive: false });
+            }
+            
+            // Add touchend handler to My searches tab
+            if (filterTabs.length > 1) {
+                const mySearchesTab = filterTabs[1];
+                // Remove existing handler if any
+                if (mySearchesTab._iosTouchHandler) {
+                    mySearchesTab.removeEventListener('touchend', mySearchesTab._iosTouchHandler, { passive: false });
+                }
+                
+                mySearchesTab._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    switchToMySearchesTab();
+                };
+                mySearchesTab.addEventListener('touchend', mySearchesTab._iosTouchHandler, { passive: false });
+            }
+            
+            // Add touchend handler to close button
+            if (closeButton) {
+                // Remove existing handler if any
+                if (closeButton._iosTouchHandler) {
+                    closeButton.removeEventListener('touchend', closeButton._iosTouchHandler, { passive: false });
+                }
+                
+                closeButton._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeFilterMenu();
+                };
+                closeButton.addEventListener('touchend', closeButton._iosTouchHandler, { passive: false });
+            }
+        }
+        
+        function removeIOSFilterMenuTouchHandlers() {
+            // Get all filter tabs
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const closeButton = document.querySelector('.filter-menu-close');
+            
+            // Remove handlers from all tabs
+            filterTabs.forEach(tab => {
+                if (tab._iosTouchHandler) {
+                    tab.removeEventListener('touchend', tab._iosTouchHandler, { passive: false });
+                    tab._iosTouchHandler = null;
+                }
+            });
+            
+            // Remove handler from close button
+            if (closeButton && closeButton._iosTouchHandler) {
+                closeButton.removeEventListener('touchend', closeButton._iosTouchHandler, { passive: false });
+                closeButton._iosTouchHandler = null;
             }
         }
 
