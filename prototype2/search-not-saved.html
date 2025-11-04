@@ -7584,13 +7584,18 @@
             clearSavedSearchState();
             
             // Force update My searches content IMMEDIATELY (synchronously, before checkIfStillInSavedSearch)
-            updateMySearchesContent();
+            // Update the list directly to ensure it reflects the removed search
             const savedSearchesList = document.querySelector('.saved-searches-list');
             if (savedSearchesList) {
                 populateSavedSearches();
             }
             
+            // Update My searches content (this will call populateSavedSearches again, which is fine)
+            updateMySearchesContent();
+            
             // Then check if we're still in a saved search (this won't interfere since we cleared sessionStorage)
+            // checkIfStillInSavedSearch will call updateMySearchesContent() again, but that's okay
+            // since populateSavedSearches reads from localStorage which is already updated
             checkIfStillInSavedSearch();
             
             // Note: localStorage.setItem() will automatically trigger storage events in other tabs/windows
@@ -8144,7 +8149,7 @@
             
             if (isViewingSavedSearch || pendingIndex !== null) {
                 // Coming from saved search - DON'T call restoreFilterState()
-                // updateFilterPills() is already called in early script execution (line 4654)
+                // updateFilterPills() was called in early script execution (line 4654) but DOM wasn't ready
                 // Just ensure localStorage is synced with sessionStorage filters
                 const appliedFilters = sessionStorage.getItem('appliedFilters');
                 if (appliedFilters) {
@@ -8173,6 +8178,11 @@
                                 max: filters.priceMax !== undefined ? filters.priceMax.toString() : '70000' 
                             }));
                         }
+                        
+                        // Call updateFilterPills() after DOM is ready (containers weren't available in early script)
+                        setTimeout(() => {
+                            updateFilterPills();
+                        }, 100);
                     } catch (e) {
                         console.error('Error syncing filters:', e);
                     }
