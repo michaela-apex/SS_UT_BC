@@ -5185,6 +5185,9 @@
                 if (mobileContainer) {
                     mobileContainer.style.overflow = 'hidden';
                 }
+                // Store filter menu state
+                sessionStorage.setItem('isFilterMenuOpen', 'true');
+                
                 // Add slide-in animation
                 setTimeout(() => {
                     filterMenu.classList.add('show');
@@ -5194,11 +5197,14 @@
                     // Check if a saved search is currently active
                     const isViewingSavedSearch = sessionStorage.getItem('isViewingSavedSearch') === 'true';
                     
-                    if (isViewingSavedSearch) {
-                        // A saved search is active - default to My searches tab
+                    // Check if we have a stored active tab from previous session
+                    const storedActiveTab = sessionStorage.getItem('activeFilterMenuTab');
+                    
+                    if (storedActiveTab === 'my-searches' || (isViewingSavedSearch && !storedActiveTab)) {
+                        // A saved search is active or stored tab is My searches - default to My searches tab
                         switchToMySearchesTab();
                     } else {
-                        // No saved search active - default to Filters tab
+                        // No saved search active or stored tab is Filters - default to Filters tab
                         switchToFiltersTab();
                     }
                     
@@ -5279,6 +5285,9 @@
                 if (mobileContainer) {
                     mobileContainer.style.overflow = 'auto';
                 }
+                // Store filter menu state
+                sessionStorage.setItem('isFilterMenuOpen', 'false');
+                
                 setTimeout(() => {
                     filterMenu.style.display = 'none';
                 }, 300);
@@ -5557,6 +5566,9 @@
             if (filterMenuBottom) {
                 filterMenuBottom.style.display = 'block';
             }
+            
+            // Store active tab state
+            sessionStorage.setItem('activeFilterMenuTab', 'filters');
         }
 
         function switchToMySearchesTab() {
@@ -5592,6 +5604,9 @@
             if (filterMenuBottom) {
                 filterMenuBottom.style.display = 'none';
             }
+            
+            // Store active tab state
+            sessionStorage.setItem('activeFilterMenuTab', 'my-searches');
         }
 
         function updateMySearchesContent() {
@@ -7739,6 +7754,43 @@
 
     <script>
         // Initialize page
+        function restoreFilterMenuState() {
+            // Check if filter menu should be restored
+            const isFilterMenuOpen = sessionStorage.getItem('isFilterMenuOpen') === 'true';
+            
+            if (isFilterMenuOpen) {
+                // Restore filter menu state
+                const filterMenu = document.getElementById('filterMenu');
+                if (filterMenu) {
+                    filterMenu.style.display = 'block';
+                    // Prevent background scrolling
+                    document.body.style.overflow = 'hidden';
+                    const mobileContainer = document.querySelector('.mobile-container');
+                    if (mobileContainer) {
+                        mobileContainer.style.overflow = 'hidden';
+                    }
+                    
+                    // Add slide-in animation
+                    setTimeout(() => {
+                        filterMenu.classList.add('show');
+                        // Restore filter states in the menu
+                        restoreFilterMenuStates();
+                        
+                        // Restore active tab
+                        const storedActiveTab = sessionStorage.getItem('activeFilterMenuTab');
+                        if (storedActiveTab === 'my-searches') {
+                            switchToMySearchesTab();
+                        } else {
+                            switchToFiltersTab();
+                        }
+                        
+                        // Add iOS touch handlers for tabs and close button
+                        addIOSFilterMenuTouchHandlers();
+                    }, 10);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded');
             
@@ -7835,6 +7887,9 @@
                     checkIfStillInSavedSearch();
                 }
             }
+            
+            // Restore filter menu state if it was open before reload (after saved search state is restored)
+            restoreFilterMenuState();
             
             updateSaveSearchButton();
             
