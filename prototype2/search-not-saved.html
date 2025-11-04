@@ -5121,6 +5121,10 @@
             document.querySelector('.mobile-container').classList.add('menu-open');
             // Prevent background scrolling
             document.body.style.overflow = 'hidden';
+            const mobileContainer = document.querySelector('.mobile-container');
+            if (mobileContainer) {
+                mobileContainer.style.overflow = 'hidden';
+            }
         }
 
         function closeHamburgerMenu() {
@@ -5129,6 +5133,10 @@
             document.querySelector('.mobile-container').classList.remove('menu-open');
             // Restore background scrolling
             document.body.style.overflow = 'auto';
+            const mobileContainer = document.querySelector('.mobile-container');
+            if (mobileContainer) {
+                mobileContainer.style.overflow = 'auto';
+            }
         }
 
         function navigateToHomepage() {
@@ -5173,6 +5181,10 @@
                 filterMenu.style.display = 'block';
                 // Prevent background scrolling
                 document.body.style.overflow = 'hidden';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'hidden';
+                }
                 // Add slide-in animation
                 setTimeout(() => {
                     filterMenu.classList.add('show');
@@ -5193,6 +5205,28 @@
                     // Add iOS touch handlers for tabs and close button
                     addIOSFilterMenuTouchHandlers();
                 }, 10);
+            }
+        }
+
+        function initFilterMenuButtonTouchHandler() {
+            // Find the filter menu button element
+            const filterMenuButton = document.querySelector('.filter-section[onclick*="openFilterMenu"]');
+            
+            if (filterMenuButton) {
+                // Remove existing handler if any
+                if (filterMenuButton._iosTouchHandler) {
+                    filterMenuButton.removeEventListener('touchend', filterMenuButton._iosTouchHandler, { passive: false });
+                }
+                
+                // Create touchend handler for iOS
+                filterMenuButton._iosTouchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openFilterMenu();
+                };
+                
+                // Add touchend listener with passive: false to allow preventDefault
+                filterMenuButton.addEventListener('touchend', filterMenuButton._iosTouchHandler, { passive: false });
             }
         }
         
@@ -5241,6 +5275,10 @@
                 filterMenu.classList.remove('show');
                 // Restore background scrolling
                 document.body.style.overflow = 'auto';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'auto';
+                }
                 setTimeout(() => {
                     filterMenu.style.display = 'none';
                 }, 300);
@@ -5333,6 +5371,10 @@
                 sortMenu.classList.add('show');
                 // Prevent background scrolling
                 document.body.style.overflow = 'hidden';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'hidden';
+                }
                 
                 // Add click outside to close functionality
                 sortMenuClickHandler = (event) => {
@@ -5354,6 +5396,10 @@
                 sortMenu.classList.remove('show');
                 // Restore background scrolling
                 document.body.style.overflow = 'auto';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'auto';
+                }
                 
                 // Remove click handler
                 if (sortMenuClickHandler) {
@@ -5962,6 +6008,10 @@
                 overlay.style.display = 'block';
                 // Prevent background scrolling
                 document.body.style.overflow = 'hidden';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'hidden';
+                }
                 setTimeout(() => {
                     overlay.classList.add('show');
                 }, 10);
@@ -5975,6 +6025,12 @@
                 overlay.classList.remove('show');
                 setTimeout(() => {
                     overlay.style.display = 'none';
+                    // Restore background scrolling
+                    document.body.style.overflow = 'auto';
+                    const mobileContainer = document.querySelector('.mobile-container');
+                    if (mobileContainer) {
+                        mobileContainer.style.overflow = 'auto';
+                    }
                 }, 300);
             }
         }
@@ -6081,6 +6137,12 @@
             const overlay = document.getElementById('pricePaymentOverlay');
             if (overlay) {
                 overlay.style.display = 'block';
+                // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'hidden';
+                }
                 setTimeout(() => {
                     overlay.classList.add('show');
                 }, 10);
@@ -6094,6 +6156,12 @@
                 overlay.classList.remove('show');
                 setTimeout(() => {
                     overlay.style.display = 'none';
+                    // Restore background scrolling
+                    document.body.style.overflow = 'auto';
+                    const mobileContainer = document.querySelector('.mobile-container');
+                    if (mobileContainer) {
+                        mobileContainer.style.overflow = 'auto';
+                    }
                 }, 300);
             }
         }
@@ -6824,6 +6892,13 @@
                 overlay.style.display = 'block';
                 console.log('Overlay should now be visible');
                 
+                // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'hidden';
+                }
+                
                 // Prepopulate with selected filters
                 populateSearchName();
                 
@@ -6939,6 +7014,13 @@
                     overlay.style.display = 'none';
                     modal.classList.remove('slide-up');
                     console.log('Overlay hidden');
+                    
+                    // Restore background scrolling
+                    document.body.style.overflow = 'auto';
+                    const mobileContainer = document.querySelector('.mobile-container');
+                    if (mobileContainer) {
+                        mobileContainer.style.overflow = 'auto';
+                    }
                 }, 300); // Match animation duration
                 
                 // Remove event listeners
@@ -7282,6 +7364,13 @@
                 overlay.style.display = 'block';
                 modal.style.display = 'block';
                 
+                // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
+                const mobileContainer = document.querySelector('.mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.style.overflow = 'hidden';
+                }
+                
                 // Trigger slide-in animation
                 setTimeout(() => {
                     modal.classList.add('show');
@@ -7325,6 +7414,13 @@
                 setTimeout(() => {
                     overlay.style.display = 'none';
                     modal.style.display = 'none';
+                    
+                    // Restore background scrolling
+                    document.body.style.overflow = 'auto';
+                    const mobileContainer = document.querySelector('.mobile-container');
+                    if (mobileContainer) {
+                        mobileContainer.style.overflow = 'auto';
+                    }
                     
                     // Reset content back to sign-in form
                     const signinContent = document.querySelector('.signin-content');
@@ -7645,6 +7741,9 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded');
+            
+            // Initialize iOS touch handler for filter menu button
+            initFilterMenuButtonTouchHandler();
             
             // DEBUG: Check navigation elements visibility
             function debugNavigation() {
