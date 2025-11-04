@@ -7363,8 +7363,17 @@
                 searchName = existingSearch.name;
                 updatedSearches = savedSearches;
             } else {
-                // Create new search with prepopulated name
-                searchName = generateSearchName(currentBodyStyles, currentPriceRange);
+                // Create new search - check for previously used name first
+                const previouslyUsedName = getPreviouslyUsedName(currentBodyStyles, currentPriceRange);
+                if (previouslyUsedName) {
+                    // Use the previously used name (for resaving)
+                    searchName = previouslyUsedName;
+                    console.log('Using previously used name:', searchName);
+                } else {
+                    // Generate new name
+                    searchName = generateSearchName(currentBodyStyles, currentPriceRange);
+                }
+                
                 const currentFilters = {
                     name: searchName,
                     bodyStyles: currentBodyStyles,
@@ -7484,6 +7493,19 @@
             // Get saved searches
             const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
             
+            // Find the matching search to get its name before removing
+            const matchingSearch = savedSearches.find(search => {
+                const bodyStylesMatch = JSON.stringify(search.bodyStyles.sort()) === JSON.stringify(currentBodyStyles.sort());
+                const priceRangeMatch = search.priceRange.min === currentPriceRange.min && 
+                                      search.priceRange.max === currentPriceRange.max;
+                return bodyStylesMatch && priceRangeMatch;
+            });
+            
+            // Store the name before removing (for resaving with same name)
+            if (matchingSearch) {
+                savePreviouslyUsedName(currentBodyStyles, currentPriceRange, matchingSearch.name);
+            }
+            
             // Find and remove the matching search
             const updatedSearches = savedSearches.filter(search => {
                 // Compare body styles
@@ -7509,9 +7531,14 @@
             checkIfStillInSavedSearch();
             
             // Force update My searches content immediately after localStorage update
-            // Use setTimeout to ensure DOM has updated
+            // Also directly call populateSavedSearches to ensure list updates
             setTimeout(() => {
                 updateMySearchesContent();
+                // Also directly populate to ensure list is refreshed
+                const savedSearchesList = document.querySelector('.saved-searches-list');
+                if (savedSearchesList) {
+                    populateSavedSearches();
+                }
             }, 0);
             
             // Note: localStorage.setItem() will automatically trigger storage events in other tabs/windows
