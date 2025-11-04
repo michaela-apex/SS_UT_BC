@@ -7583,19 +7583,15 @@
             // Clear saved search state from sessionStorage
             clearSavedSearchState();
             
-            // Check if we're still in a saved search and update UI accordingly
-            checkIfStillInSavedSearch();
+            // Force update My searches content IMMEDIATELY (synchronously, before checkIfStillInSavedSearch)
+            updateMySearchesContent();
+            const savedSearchesList = document.querySelector('.saved-searches-list');
+            if (savedSearchesList) {
+                populateSavedSearches();
+            }
             
-            // Force update My searches content immediately after localStorage update
-            // Also directly call populateSavedSearches to ensure list updates
-            setTimeout(() => {
-                updateMySearchesContent();
-                // Also directly populate to ensure list is refreshed
-                const savedSearchesList = document.querySelector('.saved-searches-list');
-                if (savedSearchesList) {
-                    populateSavedSearches();
-                }
-            }, 0);
+            // Then check if we're still in a saved search (this won't interfere since we cleared sessionStorage)
+            checkIfStillInSavedSearch();
             
             // Note: localStorage.setItem() will automatically trigger storage events in other tabs/windows
             // For same-window updates, visibilitychange listener in saved-searches.html handles it
@@ -8147,8 +8143,40 @@
             const pendingIndex = sessionStorage.getItem('selectedSavedSearchIndex');
             
             if (isViewingSavedSearch || pendingIndex !== null) {
-                // Coming from saved search - restore filters
-                restoreFilterState();
+                // Coming from saved search - DON'T call restoreFilterState()
+                // updateFilterPills() is already called in early script execution (line 4654)
+                // Just ensure localStorage is synced with sessionStorage filters
+                const appliedFilters = sessionStorage.getItem('appliedFilters');
+                if (appliedFilters) {
+                    try {
+                        const filters = JSON.parse(appliedFilters);
+                        // Update localStorage to match sessionStorage
+                        if (filters.bodyStyle) {
+                            const bodyStyleMap = {
+                                'sedan': 'Sedan',
+                                'convertible': 'Convertible',
+                                'suv': 'SUV',
+                                'coupe': 'Coupe',
+                                'hatchback': 'Hatchback',
+                                'truck': 'Truck',
+                                'wagon': 'Wagon',
+                                'minivan': 'Minivan'
+                            };
+                            const bodyStyleName = bodyStyleMap[filters.bodyStyle];
+                            if (bodyStyleName) {
+                                localStorage.setItem('selectedBodyStyles', JSON.stringify([bodyStyleName]));
+                            }
+                        }
+                        if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
+                            localStorage.setItem('priceRange', JSON.stringify({ 
+                                min: filters.priceMin !== undefined ? filters.priceMin.toString() : '5000', 
+                                max: filters.priceMax !== undefined ? filters.priceMax.toString() : '70000' 
+                            }));
+                        }
+                    } catch (e) {
+                        console.error('Error syncing filters:', e);
+                    }
+                }
             } else {
                 // Coming from shop link or default - clear all filters
                 // Clear filter pills
