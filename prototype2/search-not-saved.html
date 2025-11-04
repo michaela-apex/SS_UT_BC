@@ -5113,18 +5113,29 @@
                 }
             });
             
-            // Update localStorage based on which filter was removed
+            // Get current applied filters from sessionStorage
+            let appliedFilters = {};
+            try {
+                const storedFilters = sessionStorage.getItem('appliedFilters');
+                if (storedFilters) {
+                    appliedFilters = JSON.parse(storedFilters);
+                }
+            } catch (e) {
+                console.error('Error parsing applied filters:', e);
+            }
+            
+            // Update localStorage and sessionStorage based on which filter was removed
             if (pillText) {
                 // Check if it's a body style
                 const bodyStyleMap = {
-                    'Sedan': 'Sedan',
-                    'Convertible': 'Convertible',
-                    'SUV': 'SUV',
-                    'Coupe': 'Coupe',
-                    'Hatchback': 'Hatchback',
-                    'Truck': 'Truck',
-                    'Wagon': 'Wagon',
-                    'Minivan': 'Minivan'
+                    'Sedan': 'sedan',
+                    'Convertible': 'convertible',
+                    'SUV': 'suv',
+                    'Coupe': 'coupe',
+                    'Hatchback': 'hatchback',
+                    'Truck': 'truck',
+                    'Wagon': 'wagon',
+                    'Minivan': 'minivan'
                 };
                 
                 if (bodyStyleMap[pillText]) {
@@ -5132,9 +5143,23 @@
                     const selectedBodyStyles = JSON.parse(localStorage.getItem('selectedBodyStyles') || '[]');
                     const updatedBodyStyles = selectedBodyStyles.filter(style => style !== pillText);
                     localStorage.setItem('selectedBodyStyles', JSON.stringify(updatedBodyStyles));
+                    
+                    // Update sessionStorage appliedFilters
+                    delete appliedFilters.bodyStyle;
                 } else if (pillText.includes('$') && pillText.includes('-')) {
                     // It's a price range pill - reset to default
                     localStorage.setItem('priceRange', JSON.stringify({ min: '5000', max: '70000' }));
+                    
+                    // Update sessionStorage appliedFilters
+                    delete appliedFilters.priceMin;
+                    delete appliedFilters.priceMax;
+                }
+                
+                // Update sessionStorage with modified filters
+                if (Object.keys(appliedFilters).length > 0) {
+                    sessionStorage.setItem('appliedFilters', JSON.stringify(appliedFilters));
+                } else {
+                    sessionStorage.removeItem('appliedFilters');
                 }
             }
             
