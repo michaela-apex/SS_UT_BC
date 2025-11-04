@@ -4650,10 +4650,17 @@
                 const filters = JSON.parse(appliedFilters);
                 applySavedSearchFilters(filters);
                 
+                // Update filter pills to show applied filters
+                updateFilterPills();
+                
                 // Add new car badges to SRP tiles
                 if (selectedSavedSearch) {
                     addNewCarBadgesToTiles(selectedSavedSearch);
                 }
+                
+                // Ensure saved search state is set
+                isSearchSaved = true;
+                updateSaveSearchButton();
             } catch (e) {
                 console.error('Error parsing applied filters:', e);
             }
@@ -5166,11 +5173,11 @@
             // Clear saved search state when filters are modified
             clearSavedSearchState();
             
-            // Check if we're still in a saved search after removing this filter
-            checkIfStillInSavedSearch();
-            
-            // Update filter pills to reflect current state
+            // Update filter pills FIRST (before checking saved search state)
             updateFilterPills();
+            
+            // Then check if we're still in a saved search after removing this filter
+            checkIfStillInSavedSearch();
         }
         
         function clearSavedSearchState() {
@@ -7268,31 +7275,60 @@
             
             // Check if this search already exists
             const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
+            const oldSearches = JSON.parse(JSON.stringify(savedSearches)); // Keep copy for storage event
             const existingSearch = findMatchingSearch(currentBodyStyles, currentPriceRange, savedSearches);
             
+            let searchName;
+            let updatedSearches;
+            
             if (existingSearch) {
-                // Search already exists, just mark as saved (don't create duplicate)
+                // Search already exists, mark as saved and set saved search state
                 console.log('Search already exists, marking as saved');
-                return;
+                searchName = existingSearch.name;
+                updatedSearches = savedSearches;
+            } else {
+                // Create new search with prepopulated name
+                searchName = generateSearchName(currentBodyStyles, currentPriceRange);
+                const currentFilters = {
+                    name: searchName,
+                    bodyStyles: currentBodyStyles,
+                    priceRange: currentPriceRange,
+                    timestamp: Date.now()
+                };
+                
+                // Save to localStorage
+                savedSearches.push(currentFilters);
+                updatedSearches = savedSearches;
+                localStorage.setItem('savedSearches', JSON.stringify(updatedSearches));
+                
+                console.log('Search saved:', searchName);
             }
             
-            // Create new search with prepopulated name
-            const searchName = generateSearchName(currentBodyStyles, currentPriceRange);
-            const currentFilters = {
-                name: searchName,
-                bodyStyles: currentBodyStyles,
-                priceRange: currentPriceRange,
-                timestamp: Date.now()
-            };
+            // Set saved search state in sessionStorage
+            sessionStorage.setItem('isViewingSavedSearch', 'true');
+            sessionStorage.setItem('selectedSavedSearch', searchName);
             
-            // Save to localStorage
-            savedSearches.push(currentFilters);
-            localStorage.setItem('savedSearches', JSON.stringify(savedSearches));
+            // Build appliedFilters object
+            const appliedFilters = {};
+            if (currentBodyStyles.length > 0) {
+                appliedFilters.bodyStyle = currentBodyStyles[0].toLowerCase();
+            }
+            appliedFilters.priceMin = parseInt(currentPriceRange.min);
+            appliedFilters.priceMax = parseInt(currentPriceRange.max);
+            sessionStorage.setItem('appliedFilters', JSON.stringify(appliedFilters));
             
-            console.log('Search saved:', searchName);
+            // Update UI to reflect saved search state
+            checkIfStillInSavedSearch();
             
             // Update My searches content if it's currently visible
             updateMySearchesContent();
+            
+            // Trigger storage event to update saved-searches.html if it's open
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'savedSearches',
+                newValue: JSON.stringify(updatedSearches),
+                oldValue: JSON.stringify(oldSearches)
+            }));
         }
 
         function findMatchingSearch(bodyStyles, priceRange, savedSearches) {
@@ -7375,6 +7411,7 @@
             
             // Get saved searches
             const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
+            const oldSearches = JSON.parse(JSON.stringify(savedSearches)); // Keep copy for storage event
             
             // Find and remove the matching search
             const updatedSearches = savedSearches.filter(search => {
@@ -7402,6 +7439,13 @@
             
             // Update the "My searches" tab if it's currently open
             updateMySearchesContent();
+            
+            // Trigger storage event to update saved-searches.html if it's open
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'savedSearches',
+                newValue: JSON.stringify(updatedSearches),
+                oldValue: JSON.stringify(oldSearches)
+            }));
         }
 
         function updateSaveSearchButton() {
