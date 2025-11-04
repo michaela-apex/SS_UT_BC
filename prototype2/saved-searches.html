@@ -245,6 +245,8 @@
 
         // Initialize saved searches on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize saved searches if they don't exist
+            initializeSavedSearches();
             populateSavedSearches();
             
             // Listen for changes to saved searches from other tabs/pages
@@ -261,6 +263,42 @@
                 }
             });
         });
+
+        function initializeSavedSearches() {
+            // Check if saved searches already exist
+            const existingSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
+            
+            // Only initialize if no saved searches exist
+            if (existingSearches.length === 0) {
+                const prototypeSearches = [
+                    {
+                        name: 'Under $15k for Sally',
+                        bodyStyles: ['Sedan'],
+                        priceRange: { min: '5000', max: '15000' },
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        name: 'Dream car',
+                        bodyStyles: ['Convertible'],
+                        priceRange: { min: '25000', max: '70000' },
+                        fuelType: 'gas',
+                        make: 'BMW',
+                        model: '3 Series',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        name: 'High safety rating',
+                        bodyStyles: ['SUV'],
+                        priceRange: { min: '5000', max: '70000' },
+                        drivetrain: 'awd',
+                        yearMin: 2020,
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                localStorage.setItem('savedSearches', JSON.stringify(prototypeSearches));
+                console.log('Initialized saved searches:', prototypeSearches);
+            }
+        }
 
         function populateSavedSearches() {
             const savedSearchesList = document.getElementById('savedSearchesList');
