@@ -5831,7 +5831,7 @@
                 if (selectedSavedSearch) {
                     setTimeout(() => {
                         highlightSelectedSavedSearch(selectedSavedSearch);
-                    }, 50);
+                    }, 200); // Increased delay to ensure cards are rendered
                 }
             } else {
                 if (signedInContent) signedInContent.style.display = 'none';
@@ -7442,6 +7442,15 @@
                 updatedSearches = savedSearches;
                 localStorage.setItem('savedSearches', JSON.stringify(updatedSearches));
                 
+                // Manually dispatch storage event for same-window updates
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'savedSearches',
+                    oldValue: JSON.stringify(oldSearches),
+                    newValue: JSON.stringify(updatedSearches),
+                    url: window.location.href,
+                    storageArea: localStorage
+                }));
+                
                 console.log('Search saved:', searchName);
             }
             
@@ -7577,6 +7586,16 @@
             
             // Update localStorage - this will trigger storage events in other tabs/windows
             localStorage.setItem('savedSearches', JSON.stringify(updatedSearches));
+            
+            // Manually dispatch storage event for same-window updates (like saved-searches.html)
+            // Storage events don't fire in the same window by default
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'savedSearches',
+                oldValue: JSON.stringify(savedSearches),
+                newValue: JSON.stringify(updatedSearches),
+                url: window.location.href,
+                storageArea: localStorage
+            }));
             
             console.log('Search removed from saved searches');
             
