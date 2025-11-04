@@ -262,6 +262,11 @@
                     populateSavedSearches();
                 }
             });
+            
+            // Also refresh when window gains focus (user navigates back to this tab)
+            window.addEventListener('focus', function() {
+                populateSavedSearches();
+            });
         });
 
         function initializeSavedSearches() {

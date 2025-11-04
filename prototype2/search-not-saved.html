@@ -4661,6 +4661,13 @@
                 // Ensure saved search state is set
                 isSearchSaved = true;
                 updateSaveSearchButton();
+                
+                // After populateSavedSearches() is called, highlight the selected search
+                setTimeout(() => {
+                    if (selectedSavedSearch) {
+                        highlightSelectedSavedSearch(selectedSavedSearch);
+                    }
+                }, 100);
             } catch (e) {
                 console.error('Error parsing applied filters:', e);
             }
@@ -5777,10 +5784,12 @@
                 // Initialize saved search card radio button behavior
                 initSavedSearchCards();
                 
-                // Highlight selected saved search if coming from saved-searches page
+                // Highlight selected saved search if one is active (on reload or from saved-searches page)
                 const selectedSavedSearch = sessionStorage.getItem('selectedSavedSearch');
                 if (selectedSavedSearch) {
-                    highlightSelectedSavedSearch(selectedSavedSearch);
+                    setTimeout(() => {
+                        highlightSelectedSavedSearch(selectedSavedSearch);
+                    }, 50);
                 }
             } else {
                 if (signedInContent) signedInContent.style.display = 'none';
