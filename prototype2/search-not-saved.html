@@ -2073,6 +2073,11 @@
             box-sizing: border-box;
             margin: 0 !important;
             position: relative;
+            /* iOS touch fixes */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            user-select: none;
         }
 
         /* Default state */
@@ -5664,6 +5669,49 @@
             const savedSearchCards = document.querySelectorAll('.saved-search-card');
             
             savedSearchCards.forEach((card, index) => {
+                // Use touchstart for iOS to avoid click delay
+                // Store touch state on the card element to avoid closure issues
+                
+                card.addEventListener('touchstart', function(event) {
+                    this._touchStartTime = Date.now();
+                    this._touchStartY = event.touches[0].clientY;
+                    this._touchStartX = event.touches[0].clientX;
+                }, { passive: true });
+                
+                card.addEventListener('touchend', function(event) {
+                    if (!this._touchStartTime) return;
+                    
+                    const touchEndTime = Date.now();
+                    const touchEndY = event.changedTouches[0].clientY;
+                    const touchEndX = event.changedTouches[0].clientX;
+                    
+                    // Only trigger if it's a tap (not a scroll)
+                    const timeDiff = touchEndTime - this._touchStartTime;
+                    const yDiff = Math.abs(touchEndY - this._touchStartY);
+                    const xDiff = Math.abs(touchEndX - this._touchStartX);
+                    
+                    // Clear touch state
+                    this._touchStartTime = null;
+                    this._touchStartY = null;
+                    this._touchStartX = null;
+                    
+                    if (timeDiff < 300 && yDiff < 10 && xDiff < 10) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        
+                        // Remove selected class from all cards
+                        const allCards = document.querySelectorAll('.saved-search-card');
+                        allCards.forEach(c => c.classList.remove('selected'));
+                        
+                        // Add selected class to clicked card
+                        this.classList.add('selected');
+                        
+                        // Apply the saved search
+                        applySavedSearch(index);
+                    }
+                }, { passive: false });
+                
+                // Keep click handler for desktop/fallback
                 card.addEventListener('click', function(event) {
                     // Remove selected class from all cards
                     const allCards = document.querySelectorAll('.saved-search-card');
